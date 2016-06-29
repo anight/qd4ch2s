@@ -49,7 +49,7 @@ enum msg_e {
 };
 
 static uint8_t eep_prescaler __attribute__((section(".eeprom"))) = prescaler_default;
-static uint16_t eep_auto_print __attribute__((section(".eeprom"))) = 0;
+static uint16_t eep_auto_print __attribute__((section(".eeprom"))) = 1000;
 
 uint8_t prescaler;
 uint16_t auto_print;
