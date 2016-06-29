@@ -29,6 +29,13 @@
 #define prescaler_max     10
 #define prescaler_default  6
 
+FUSES =
+{
+    .low = LFUSE_DEFAULT | ~FUSE_CKDIV8,
+    .high = HFUSE_DEFAULT,
+    .extended = 7,
+};
+
 enum msg_e {
 	MSG_NONE = 0,
 	MSG_OK,
@@ -187,9 +194,6 @@ static uint16_t read_tcnt1(void)
 
 int main(void)
 {
-	CLKPR = (1 << CLKPCE);
-	CLKPR = 0; /* prescaler = 1, 8MHz total */
-
 	DDRB = 0; /* all in */
 
 	TCCR1A = 0;
