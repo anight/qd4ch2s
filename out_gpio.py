@@ -8,7 +8,7 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(17, GPIO.OUT)
 GPIO.setup(27, GPIO.OUT)
 
-n = 0.001
+n = 0.00001
 
 while True:
 	GPIO.output(17, True)

@@ -12,7 +12,7 @@ avrFreq=8000000
 #programmerDev=/dev/ttyACM0
 #avrFreq=16000000
 
-cflags=-g -DF_CPU=$(avrFreq) -Wall -Os -flto
+cflags=-g -DF_CPU=$(avrFreq) -Wall -O3 -flto
 
 memoryTypes=calibration eeprom efuse flash fuse hfuse lfuse lock signature application apptable boot prodsig usersig
 

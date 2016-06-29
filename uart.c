@@ -11,7 +11,6 @@ static char * volatile uart_outbuf_out = uart_outbuf;
 void uart_print_char(char c)
 {
 	if (uart_outbuf_in == uart_outbuf + sizeof(uart_outbuf)) {
-		PORTC |= (1 << 3);
 		return;
 	}
 	*uart_outbuf_in = c;
@@ -95,24 +94,23 @@ void uart_init()
 {
 #define USE_2X 1
 #define BAUD 1000000
-//#define BAUD 9600
 #include <util/setbaud.h>
 
 	UBRR0H = UBRRH_VALUE;
 	UBRR0L = UBRRL_VALUE;
 
-	UCSR0A = (USE_2X << U2X0); /* Double the USART Transmission Speed */
+	UCSR0A = (USE_2X << U2X0);               /* Double the USART Transmission Speed */
 
-	UCSR0B = (1 << RXCIE0) /* RX Complete Interrupt Enable */
-		| (0 << TXCIE0) /* TX Complete Interrupt Enable */
-		| (0 << UDRIE0) /* USART Data Register Empty Interrupt Enable */
-		| (1 << RXEN0) /* Receiver Enable */
-		| (1 << TXEN0) /* Transmitter Enable */
-		| (0 << UCSZ02); /* 8 bits of data */
+	UCSR0B = (1 << RXCIE0)                   /* RX Complete Interrupt Enable */
+		| (0 << TXCIE0)                      /* TX Complete Interrupt Enable */
+		| (0 << UDRIE0)                      /* USART Data Register Empty Interrupt Enable */
+		| (1 << RXEN0)                       /* Receiver Enable */
+		| (1 << TXEN0)                       /* Transmitter Enable */
+		| (0 << UCSZ02);                     /* 8 bits of data */
 
 	UCSR0C = (0 << UMSEL01) | (0 << UMSEL00) /* Asynchronous USART */
-		| (0 << UPM01) | (0 << UPM00) /* No parity */
-		| (0 << USBS0) /* 1 stop bit */
-		| (1 << UCSZ01) | (1 << UCSZ00); /* 8 bits of data */
+		| (0 << UPM01) | (0 << UPM00)        /* No parity */
+		| (0 << USBS0)                       /* 1 stop bit */
+		| (1 << UCSZ01) | (1 << UCSZ00);     /* 8 bits of data */
 }
 

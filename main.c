@@ -72,7 +72,7 @@ static void wheel_update(struct wheel_s *w, uint8_t time, uint8_t two_bits)
 		case 0b0110:
 		case 0b1100:
 		case 0b1001:
-			/* hope this is just two pulses. let's guess direction */
+			/* hope this is just two pulses ahead. let's guess direction */
 			if (w->current > 0) {
 				w->current += 2;
 			} else {
@@ -170,16 +170,12 @@ int main(void)
 
 	DDRB = 0; /* all in */
 
-	DDRC |= (1 << 3);
-
 	TCCR1A = 0;
 	TCCR1B = (1 << CS12) | (0 << CS11) | (1 << CS10); /* /1024 */
 
 	uart_init();
 
 	sei();
-
-//	uint32_t cnt = 0;
 
 	eeprom_busy_wait();
 	prescaler = eeprom_read_byte(&eep_prescaler);
@@ -197,8 +193,6 @@ int main(void)
 		wheel_update(&wheel[1], time, (data >> 2) & 3);
 		wheel_update(&wheel[2], time, (data >> 4) & 3);
 		wheel_update(&wheel[3], time, (data >> 6) & 3);
-
-//		cnt ++;
 
 		cli();
 		if (uart_outbuf_is_empty()) {
