@@ -34,6 +34,7 @@ enum msg_e {
 	MSG_OK,
 	MSG_ERROR,
 	MSG_PRESCALER,
+	MSG_AUTO_PRINT,
 	MSG_PORT1_STATUS,
 	MSG_PORT2_STATUS,
 	MSG_PORT3_STATUS,
@@ -41,8 +42,10 @@ enum msg_e {
 };
 
 static uint8_t eep_prescaler __attribute__((section(".eeprom"))) = prescaler_default;
+static uint16_t eep_auto_print __attribute__((section(".eeprom"))) = 0;
 
 uint8_t prescaler;
+uint16_t auto_print;
 static volatile enum msg_e msg;
 
 struct wheel_s wheel[4];
@@ -143,6 +146,25 @@ void execute_cmd(const char *cmd)
 
 	else
 
+	if (!strncmp(cmd, "set auto_print ", strlen("set auto_print "))) {
+		auto_print = atoi(cmd + strlen("set auto_print "));
+		eeprom_busy_wait();
+		eeprom_write_word(&eep_auto_print, auto_print);
+		if (msg == MSG_NONE) {
+			msg = MSG_OK;
+		}
+	}
+
+	else
+
+	if (!strcmp(cmd, "get auto_print")) {
+		if (msg == MSG_NONE) {
+			msg = MSG_AUTO_PRINT;
+		}
+	}
+
+	else
+
 	if (msg == MSG_NONE) {
 		msg = MSG_ERROR;
 	}
@@ -186,9 +208,16 @@ int main(void)
 		eeprom_write_byte(&eep_prescaler, prescaler);
 	}
 
+	eeprom_busy_wait();
+	auto_print = eeprom_read_word(&eep_auto_print);
+
+	uint16_t auto_print_time = 32768;
+	uint16_t auto_print_limit = auto_print_time + 1;
+
 	while (1) {
 		uint8_t data = PINB;
-		uint8_t time = (read_tcnt1() >> prescaler) & (pulse_buf_size - 1);
+		uint16_t timer1 = read_tcnt1();
+		uint8_t time = (timer1 >> prescaler) & (pulse_buf_size - 1);
 		wheel_update(&wheel[0], time, (data >> 0) & 3);
 		wheel_update(&wheel[1], time, (data >> 2) & 3);
 		wheel_update(&wheel[2], time, (data >> 4) & 3);
@@ -199,6 +228,23 @@ int main(void)
 
 			switch (msg) {
 				case MSG_NONE:
+					if (auto_print) {
+						char do_print = 0;
+						if (auto_print_time < auto_print_limit) {
+							if (timer1 < auto_print_time || timer1 > auto_print_limit) {
+								do_print = 1;
+							}
+						} else {
+							if (timer1 > auto_print_limit && timer1 < auto_print_time) {
+								do_print = 1;
+							}
+						}
+						if (do_print) {
+							msg = MSG_PORT1_STATUS;
+							auto_print_time = timer1;
+							auto_print_limit = auto_print_time + auto_print;
+						}
+					}
 					break;
 				case MSG_PORT1_STATUS:
 					wheel_print(&wheel[0], 1);
@@ -233,6 +279,12 @@ int main(void)
 						uart_print_char('0' + prescaler / 10);
 					}
 					uart_print_char('0' + prescaler % 10);
+					uart_print_char('\n');
+					msg = MSG_NONE;
+					break;
+				case MSG_AUTO_PRINT:
+					uart_print_hex_byte((auto_print >> 8) & 0xff);
+					uart_print_hex_byte((auto_print >> 0) & 0xff);
 					uart_print_char('\n');
 					msg = MSG_NONE;
 					break;

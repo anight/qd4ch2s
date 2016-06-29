@@ -22,10 +22,10 @@ prescaler = bus.read_byte_data(addr, 0x00)
 if prescaler < 2 or prescaler > 10:
 	raise Exception("oh really")
 
-# 8050000: apporox atmega328p cpu frequency
+# 8080000: apporox atmega328p cpu frequency
 # 1024:    timer1 divisor
 # 16:      number of circular buffer cells of the time window
-time_window = (1./8050000) * 1024 * (1 << prescaler) * 16
+time_window = (1./8080000) * 1024 * (1 << prescaler) * 16
 
 print "prescaler", prescaler
 print "time_window", time_window

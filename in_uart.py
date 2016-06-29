@@ -2,6 +2,12 @@
 
 import serial
 import time
+import argparse
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--notx", help="use this flag when tx line is not connected and auto_print != 0", action="store_true")
+args = parser.parse_args()
 
 port = serial.Serial("/dev/ttyUSB0", baudrate=1000000, timeout=3.0)
 
@@ -10,8 +16,10 @@ PPR = 4 * CPR
 
 prescaler = 6
 
-port.write("set prescaler %d\r\n" % prescaler)
-assert "OK" == port.readline().strip()
+while not args.notx:
+	port.write("set prescaler %d\r\n" % prescaler)
+	if "OK" == port.readline().strip():
+		break
 
 # 8080000: apporox atmega328p cpu frequency
 # 1024:    timer1 divisor
@@ -22,10 +30,19 @@ print "prescaler", prescaler
 print "time_window", time_window
 
 while True:
-	port.write("\r\n")
+	if not args.notx:
+		port.write("\r\n")
 	line = port.readline().strip()
-	for p in line.split(' '):
-		port_id, rest = p.split('=')
+	ports = line.split(' ')
+	if len(ports) != 4:
+		continue
+	for p in ports:
+		kv = p.split('=')
+		if len(kv) != 2:
+			break
+		port_id, rest = kv
+		if len(port_id) != 1:
+			break
 		numbers = rest.split(',')
 		port_id = int(port_id)
 		skipped_ticks, double_states = int(numbers[0], 16), int(numbers[1], 16)
@@ -34,4 +51,6 @@ while True:
 		if ppw > 32767:
 			ppw -= 65536
 		print port_id, ppw / time_window / PPR
-	time.sleep(1.0)
+	if not args.notx:
+		time.sleep(1.0)
+

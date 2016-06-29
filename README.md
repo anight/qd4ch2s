@@ -1,7 +1,6 @@
 # qd4ch2s
 * ~~prescaler write by i2c~~
 * ~~stabililize i2c @ 100khz~~
-* auto mode for serial, eeprom config setting
 
 ```
  vcc    1 ++v++ 28
